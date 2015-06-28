@@ -51,7 +51,15 @@
 - (IBAction)RecordAndPlay:(id)sender {
     [self startCameraControllerFromViewController: self
                                     usingDelegate: self];
-    NSLog(@"The code runs through here!");
+    [NSTimer scheduledTimerWithTimeInterval:0.5
+                                     target:self
+                                   selector:@selector(onTick:)
+                                   userInfo:nil
+                                    repeats:YES];
+}
+
+-(void)onTick:(NSTimer *)timer {
+    NSLog(@"The code runs through here");
 }
 
 - (BOOL) startCameraControllerFromViewController: (UIViewController*) controller
