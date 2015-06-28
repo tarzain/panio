@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BF16E9A21B3F7956002D3610 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = BF16E9A11B3F7956002D3610 /* Default-568h@2x.png */; };
 		F14F09D7155A4DF000FE8EF5 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F14F09D6155A4DF000FE8EF5 /* UIKit.framework */; };
 		F14F09D9155A4DF000FE8EF5 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F14F09D8155A4DF000FE8EF5 /* Foundation.framework */; };
 		F14F09DB155A4DF000FE8EF5 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F14F09DA155A4DF000FE8EF5 /* CoreGraphics.framework */; };
@@ -27,6 +28,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		BF16E9A11B3F7956002D3610 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		F14F09D2155A4DF000FE8EF5 /* VideoPlayRecord.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VideoPlayRecord.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F14F09D6155A4DF000FE8EF5 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		F14F09D8155A4DF000FE8EF5 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -77,6 +79,7 @@
 		F14F09C7155A4DF000FE8EF5 = {
 			isa = PBXGroup;
 			children = (
+				BF16E9A11B3F7956002D3610 /* Default-568h@2x.png */,
 				F14F0A0A155A562800FE8EF5 /* MobileCoreServices.framework */,
 				F14F0A08155A562000FE8EF5 /* MediaPlayer.framework */,
 				F14F0A06155A561500FE8EF5 /* AssetsLibrary.framework */,
@@ -165,6 +168,11 @@
 			attributes = {
 				LastUpgradeCheck = 0420;
 				ORGANIZATIONNAME = DataInvent;
+				TargetAttributes = {
+					F14F09D1155A4DF000FE8EF5 = {
+						DevelopmentTeam = 3CV67T79VL;
+					};
+				};
 			};
 			buildConfigurationList = F14F09CC155A4DF000FE8EF5 /* Build configuration list for PBXProject "VideoPlayRecord" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -190,6 +198,7 @@
 			files = (
 				F14F09E1155A4DF000FE8EF5 /* InfoPlist.strings in Resources */,
 				F14F09EA155A4DF000FE8EF5 /* MainStoryboard.storyboard in Resources */,
+				BF16E9A21B3F7956002D3610 /* Default-568h@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -279,12 +288,13 @@
 		F14F09F1155A4DF000FE8EF5 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "iPhone Developer: Abdul Aleem Khan (F9AZ3G73GR)";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "VideoPlayRecord/VideoPlayRecord-Prefix.pch";
 				INFOPLIST_FILE = "VideoPlayRecord/VideoPlayRecord-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "69572C71-8883-460A-B27B-E71B2CC8950E";
+				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -292,12 +302,13 @@
 		F14F09F2155A4DF000FE8EF5 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "iPhone Developer: Abdul Aleem Khan (F9AZ3G73GR)";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "VideoPlayRecord/VideoPlayRecord-Prefix.pch";
 				INFOPLIST_FILE = "VideoPlayRecord/VideoPlayRecord-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "69572C71-8883-460A-B27B-E71B2CC8950E";
+				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
