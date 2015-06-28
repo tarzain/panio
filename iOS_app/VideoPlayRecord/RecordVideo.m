@@ -51,6 +51,7 @@
 - (IBAction)RecordAndPlay:(id)sender {
     [self startCameraControllerFromViewController: self
                                     usingDelegate: self];
+    NSLog(@"The code runs through here!");
 }
 
 - (BOOL) startCameraControllerFromViewController: (UIViewController*) controller
