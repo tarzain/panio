@@ -9,6 +9,10 @@
 #import "RecordVideo.h"
 #import <CoreMotion/CoreMotion.h>
 
+CMMotionManager *motionManager;
+CMAttitude *referenceAttitude;
+NSMutableArray *gyroDataStream;
+
 @implementation RecordVideo
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -55,37 +59,43 @@
                                      target:self
                                    selector:@selector(onTick:)
                                    userInfo:nil
-                                    repeats:YES];
+                                    repeats:NO];
 }
 
 -(void)onTick:(NSTimer *)timer {
-    self.motionManager = [[CMMotionManager alloc] init];
-    
-    
+    motionManager = [[CMMotionManager alloc] init];
+    referenceAttitude = nil;
+//    NSMutableArray *gyroDataStream = [NSMutableArray arrayWithObjects:@[@0,@0,@0], nil];
+    gyroDataStream = [[NSMutableArray alloc] init];
+    NSLog(@"Gyroscope Available!");
+
     //Gyroscope
-    if([self.motionManager isGyroAvailable])
+    if([motionManager isGyroAvailable])
     {
         /* Start the gyroscope if it is not active already */
-        if([self.motionManager isGyroActive] == NO)
+        if([motionManager isGyroActive] == NO)
         {
             /* Update us 2 times a second */
-            [self.motionManager setGyroUpdateInterval:1.0f / 2.0f];
+            [motionManager setGyroUpdateInterval:1.0f / 30.0f];
             
             /* Add on a handler block object */
             
             /* Receive the gyroscope data on this block */
-            [self.motionManager startGyroUpdatesToQueue:[NSOperationQueue mainQueue]
+            [motionManager startGyroUpdatesToQueue:[NSOperationQueue mainQueue]
                                             withHandler:^(CMGyroData *gyroData, NSError *error)
              {
-                 NSString *x = [[NSString alloc] initWithFormat:@"%.02f",gyroData.rotationRate.x];
-                 self.gyro_xaxis.text = x;
-                 
-                 NSString *y = [[NSString alloc] initWithFormat:@"%.02f",gyroData.rotationRate.y];
-                 self.gyro_yaxis.text = y;
-                 
-                 NSString *z = [[NSString alloc] initWithFormat:@"%.02f",gyroData.rotationRate.z];
-                 self.gyro_zaxis.text = z;
+                 NSArray *gyroAxisData = @[
+                                           [NSNumber numberWithDouble:[[NSDate date] timeIntervalSince1970]* 1000.0],
+                                           [NSNumber numberWithDouble:gyroData.rotationRate.x],
+                                           [NSNumber numberWithDouble:gyroData.rotationRate.y],
+                                           [NSNumber numberWithDouble:gyroData.rotationRate.z]
+                                           ];
+                 [gyroDataStream addObject:gyroAxisData];
+                 NSLog( @"%@",[[gyroDataStream lastObject] componentsJoinedByString:@", "]);
+
+//                 NSLog(@"Gyroscope Available!");
              }];
+
         }
     }
     else
@@ -138,10 +148,12 @@
                                 UIImagePickerControllerMediaURL] path];
         if (UIVideoAtPathIsCompatibleWithSavedPhotosAlbum (moviePath)) {
             UISaveVideoAtPathToSavedPhotosAlbum (moviePath,self, @selector(video:didFinishSavingWithError:contextInfo:), nil);
-        } 
+        }
         
         
     }
+    [motionManager stopGyroUpdates];
+    NSLog( @"%@",[gyroDataStream componentsJoinedByString:@" FINAL, "]);
 }
 
 - (void)video:(NSString*)videoPath didFinishSavingWithError:(NSError*)error contextInfo:(void*)contextInfo
