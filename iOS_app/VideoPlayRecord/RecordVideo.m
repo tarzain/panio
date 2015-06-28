@@ -164,7 +164,10 @@ NSMutableData *responseData;
         
     }
     [motionManager stopGyroUpdates];
+    NSError * error;
     NSLog( @"%@",[gyroDataStream componentsJoinedByString:@" FINAL, "]);
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:gyroDataStream options:NSJSONWritingPrettyPrinted error:&error];
+    NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
     
 }
 
