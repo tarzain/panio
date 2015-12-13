@@ -8,6 +8,7 @@
 
 #import "RecordVideo.h"
 #import <CoreMotion/CoreMotion.h>
+#import <AVFoundation/AVFoundation.h>
 
 CMMotionManager *motionManager;
 CMAttitude *referenceAttitude;
@@ -54,8 +55,10 @@ NSMutableData *responseData;
     [self dismissModalViewControllerAnimated: YES];
 }
 - (IBAction)RecordAndPlay:(id)sender {
-    [self startCameraControllerFromViewController: self
-                                    usingDelegate: self];
+//    [self startCameraControllerFromViewController: self
+//                                    usingDelegate: self];
+//
+    [self startAVFMovieCapture:self];
     [NSTimer scheduledTimerWithTimeInterval:0.5
                                      target:self
                                    selector:@selector(onTick:)
@@ -102,6 +105,36 @@ NSMutableData *responseData;
     {
         NSLog(@"Gyroscope not Available!");
     }
+}
+
+- (BOOL) startAVFMovieCapture: (UIViewController*) controller{
+    AVCaptureSession *captureSession = [AVCaptureSession new];
+    
+    AVCaptureDevice *cameraDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+    NSError *error;
+    AVCaptureDeviceInput *cameraDeviceInput = [[AVCaptureDeviceInput alloc] initWithDevice:cameraDevice error:&error];
+
+    if ([captureSession canAddInput:cameraDeviceInput]) {
+        [captureSession addInput:cameraDeviceInput];
+    }
+    
+    AVCaptureMovieFileOutput *movieFileOutput = [AVCaptureMovieFileOutput new];
+    if([captureSession canAddOutput:movieFileOutput]){
+        [captureSession addOutput:movieFileOutput];
+    }
+    captureSession.sessionPreset = AVCaptureSessionPresetHigh;
+
+    
+    // Start recording
+    NSURL *outputURL = [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] firstObject];
+    [movieFileOutput startRecordingToOutputFileURL:outputURL recordingDelegate:self];
+    AVCaptureVideoPreviewLayer *previewLayer = [AVCaptureVideoPreviewLayer layerWithSession:captureSession];
+    
+    UIView *previewView = [controller view];
+    previewLayer.frame = previewView.bounds;
+    [previewView.layer addSublayer:previewLayer];
+    
+    [captureSession startRunning];
 }
 
 - (BOOL) startCameraControllerFromViewController: (UIViewController*) controller
