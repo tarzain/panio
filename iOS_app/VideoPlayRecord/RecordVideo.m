@@ -14,6 +14,8 @@ CMMotionManager *motionManager;
 CMAttitude *referenceAttitude;
 NSMutableArray *gyroDataStream;
 NSMutableData *responseData;
+AVCaptureSession *captureSession;
+AVCaptureMovieFileOutput *movieFileOutput;
 
 @implementation RecordVideo
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
@@ -33,7 +35,7 @@ NSMutableData *responseData;
     // Release any cached data, images, etc that aren't in use.
 }
 
-#pragma mark - View lifecycle
+//#pragma mark - View lifecycle
 
 - (void)viewDidUnload
 {
@@ -107,8 +109,36 @@ NSMutableData *responseData;
     }
 }
 
+- (void) stopAVFRecording{
+    [motionManager stopGyroUpdates];
+    [self addGyroMetadata];
+    [movieFileOutput stopRecording];
+    //NSLog( @"%@",[gyroDataStream componentsJoinedByString:@" FINAL, "]);
+}
+
+- (void) addGyroMetadata{
+    NSArray *existingMetadataArray = movieFileOutput.metadata;
+    NSMutableArray *newMetadataArray = nil;
+    if (existingMetadataArray) {
+        newMetadataArray = [existingMetadataArray mutableCopy];
+    }
+    else {
+        newMetadataArray = [[NSMutableArray alloc] init];
+    }
+    
+    AVMutableMetadataItem *item = [[AVMutableMetadataItem alloc] init];
+    item.keySpace = AVMetadataKeySpaceCommon;
+    item.key = @"gyroData";
+    
+    item.value = gyroDataStream;
+    
+    [newMetadataArray addObject:item];
+    
+    movieFileOutput.metadata = newMetadataArray;
+}
+
 - (BOOL) startAVFMovieCapture: (UIViewController*) controller{
-    AVCaptureSession *captureSession = [AVCaptureSession new];
+    captureSession = [[AVCaptureSession alloc] init];
     
     AVCaptureDevice *cameraDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
     NSError *error;
@@ -118,23 +148,94 @@ NSMutableData *responseData;
         [captureSession addInput:cameraDeviceInput];
     }
     
-    AVCaptureMovieFileOutput *movieFileOutput = [AVCaptureMovieFileOutput new];
+    movieFileOutput = [[AVCaptureMovieFileOutput alloc] init];
+    
     if([captureSession canAddOutput:movieFileOutput]){
         [captureSession addOutput:movieFileOutput];
     }
-    captureSession.sessionPreset = AVCaptureSessionPresetHigh;
-
+    [captureSession setSessionPreset:AVCaptureSessionPresetHigh];
     
-    // Start recording
-    NSURL *outputURL = [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] firstObject];
-    [movieFileOutput startRecordingToOutputFileURL:outputURL recordingDelegate:self];
+    [captureSession commitConfiguration];
+
+    //    NSURL *outputURL = [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] firstObject];
+    
+    //Create temporary URL to record to
+    NSString *outputPath = [[NSString alloc] initWithFormat:@"%@%@", NSTemporaryDirectory(), @"output.mov"];
+    NSURL *outputURL = [[NSURL alloc] initFileURLWithPath:outputPath];
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    if ([fileManager fileExistsAtPath:outputPath])
+    {
+        NSError *error;
+        if ([fileManager removeItemAtPath:outputPath error:&error] == NO)
+        {
+            NSLog(@"some error occurred when checking for file at path");
+        }
+    }
+    //Start recording
+    
     AVCaptureVideoPreviewLayer *previewLayer = [AVCaptureVideoPreviewLayer layerWithSession:captureSession];
+    
+    previewLayer.contentsGravity = kCAGravityResizeAspectFill;
+    previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
     
     UIView *previewView = [controller view];
     previewLayer.frame = previewView.bounds;
     [previewView.layer addSublayer:previewLayer];
     
+    UIButton *cancelButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    [cancelButton addTarget:self action:@selector(stopAVFRecording) forControlEvents:UIControlEventTouchUpInside];
+    [cancelButton setFrame:CGRectMake(previewView.bounds.size.width/2, previewView.bounds.size.height-100, 40, 40)];
+    [cancelButton setTitle:@"stop" forState:UIControlStateNormal];
+    [previewView addSubview:cancelButton];
+    
     [captureSession startRunning];
+    [movieFileOutput startRecordingToOutputFileURL:outputURL recordingDelegate:self];
+
+}
+
+- (void) captureOutput:(AVCaptureFileOutput *)captureOutput didStartRecordingToOutputFileAtURL:(NSURL *)fileURL fromConnections:(NSArray *)connections{
+    NSLog(@"started recording brah!");
+}
+- (void)captureOutput:(AVCaptureFileOutput *)captureOutput
+didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL
+      fromConnections:(NSArray *)connections
+                error:(NSError *)error
+{
+    
+    NSLog(@"didFinishRecordingToOutputFileAtURL - enter");
+    
+    BOOL RecordedSuccessfully = YES;
+    if ([error code] != noErr)
+    {
+        // A problem occurred: Find out if the recording was successful.
+        id value = [[error userInfo] objectForKey:AVErrorRecordingSuccessfullyFinishedKey];
+        if (value)
+        {
+            RecordedSuccessfully = [value boolValue];
+        }
+    }
+    if (RecordedSuccessfully)
+    {
+        //----- RECORDED SUCESSFULLY -----
+        NSLog(@"didFinishRecordingToOutputFileAtURL - success");
+        
+//        NSLog( @"%@",[gyroDataStream componentsJoinedByString:@" FINAL, "]);
+//        NSLog();
+        
+        ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
+        if ([library videoAtPathIsCompatibleWithSavedPhotosAlbum:outputFileURL])
+        {
+            [library writeVideoAtPathToSavedPhotosAlbum:outputFileURL
+                                        completionBlock:^(NSURL *assetURL, NSError *error)
+             {
+                 if (error)
+                 {
+                     NSLog(@"drastic error");
+                 }
+             }];
+        }
+        
+    }
 }
 
 - (BOOL) startCameraControllerFromViewController: (UIViewController*) controller
@@ -198,7 +299,7 @@ NSMutableData *responseData;
     }
     [motionManager stopGyroUpdates];
     NSError * error;
-    NSLog( @"%@",[gyroDataStream componentsJoinedByString:@" FINAL, "]);
+//    NSLog( @"%@",[gyroDataStream componentsJoinedByString:@" FINAL, "]);
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:gyroDataStream options:NSJSONWritingPrettyPrinted error:&error];
     NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
     
