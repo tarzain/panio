@@ -113,6 +113,7 @@ AVCaptureMovieFileOutput *movieFileOutput;
     [motionManager stopGyroUpdates];
     [self addGyroMetadata];
     [movieFileOutput stopRecording];
+    NSLog(@"saved metadata %@", movieFileOutput.metadata[0]);
     //NSLog( @"%@",[gyroDataStream componentsJoinedByString:@" FINAL, "]);
 }
 
@@ -128,7 +129,7 @@ AVCaptureMovieFileOutput *movieFileOutput;
     
     AVMutableMetadataItem *item = [[AVMutableMetadataItem alloc] init];
     item.keySpace = AVMetadataKeySpaceCommon;
-    item.key = @"gyroData";
+    item.key = AVMetadataCommonKeyDescription;
     
     item.value = gyroDataStream;
     
@@ -221,6 +222,25 @@ didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL
         
 //        NSLog( @"%@",[gyroDataStream componentsJoinedByString:@" FINAL, "]);
 //        NSLog();
+        
+        // read metadata
+        NSLog(@"video has %@", outputFileURL.path);
+        AVAsset *videoAsset = [AVAsset assetWithURL:outputFileURL];
+        NSLog(@"Loading metadata...");
+        NSArray *keys = [[NSArray alloc] initWithObjects:@"commonMetadata", nil];
+        NSMutableArray *metadata = [[NSMutableArray alloc] init];
+        [videoAsset loadValuesAsynchronouslyForKeys:keys completionHandler:^{
+            
+            [metadata removeAllObjects];
+            for (NSString *format in [videoAsset availableMetadataFormats])
+            {
+                [metadata addObjectsFromArray:[videoAsset metadataForFormat:format]];
+                NSLog(@"Printing metadata-%@",metadata);
+            }
+            
+            
+        }];
+        //end metadata reading
         
         ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
         if ([library videoAtPathIsCompatibleWithSavedPhotosAlbum:outputFileURL])

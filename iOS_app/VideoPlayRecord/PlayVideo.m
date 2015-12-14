@@ -7,6 +7,7 @@
 //
 
 #import "PlayVideo.h"
+#import <AVFoundation/AVFoundation.h>
 
 @implementation PlayVideo
 
@@ -63,7 +64,7 @@
     
     // Hides the controls for moving & scaling pictures, or for
     // trimming movies. To instead show the controls, use YES.
-    mediaUI.allowsEditing = YES;
+    mediaUI.allowsEditing = NO;
     
     mediaUI.delegate = delegate;
     
@@ -91,9 +92,30 @@
         
         NSString *moviePath = [[info objectForKey:
                                 UIImagePickerControllerMediaURL] path];
+        NSURL *contentURL = [info objectForKey:UIImagePickerControllerMediaURL];
         MPMoviePlayerViewController* theMovie =
         [[MPMoviePlayerViewController alloc] initWithContentURL: [info objectForKey:
                                                                   UIImagePickerControllerMediaURL]];
+        NSLog([NSString stringWithFormat:@"url and path of picked movie: %@ \n %@", contentURL, moviePath]);
+        
+        // read metadata
+        NSLog(@"video has %@", contentURL.path);
+        AVAsset *videoAsset = [AVAsset assetWithURL:contentURL];
+        NSLog(@"Loading metadata...");
+        NSArray *keys = [[NSArray alloc] initWithObjects:@"commonMetadata", nil];
+        NSMutableArray *metadata = [[NSMutableArray alloc] init];
+        [videoAsset loadValuesAsynchronouslyForKeys:keys completionHandler:^{
+            
+            [metadata removeAllObjects];
+            for (NSString *format in [videoAsset availableMetadataFormats])
+            {
+                [metadata addObjectsFromArray:[videoAsset metadataForFormat:format]];
+                NSLog(@"Printing metadata-%@",metadata);
+            }
+            
+            
+        }];
+        
         [self presentMoviePlayerViewControllerAnimated:theMovie];
         
         // Register for the playback finished notification
